@@ -41,6 +41,7 @@ export default class TransformableImage extends PureComponent {
         this.onLoadStart = this.onLoadStart.bind(this);
         this.getViewTransformerInstance = this.getViewTransformerInstance.bind(this);
         this.renderError = this.renderError.bind(this);
+        this.imageScale = this.imageScale.bind(this);
 
         this.state = {
             viewWidth: 0,
@@ -132,6 +133,18 @@ export default class TransformableImage extends PureComponent {
         return this.refs['viewTransformer'];
     }
 
+    //This is the actual "pixel-scale"
+    //imageScale=1 when you se one image pixel per screen pixel
+    imageScale () => {
+        const transformer = this.getViewTransformerInstance();
+
+        //At the first render we haven't yet got a ref to the ViewTransformer
+        //Fortunately we know that initial scale will be 1 even without the transformer ref
+        const scale = transformer ? transformer.state.scale : 1;
+        return this.state.viewWidth / this.state.imageDimensions.width * scale;
+    }
+
+
     renderError () {
         return (this.props.errorComponent && this.props.errorComponent()) || (
             <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center' }}>
@@ -183,7 +196,7 @@ export default class TransformableImage extends PureComponent {
               enableTranslate={enableTranslate}
               enableResistance={true}
               onTransformGestureReleased={onTransformGestureReleased}
-              onViewTransformed={onViewTransformed}
+              onViewTransformed={transform => onViewTransformed(transform, this.imageScale())}
               maxScale={maxScale}
               contentAspectRatio={contentAspectRatio}
               onLayout={this.onLayout}
